@@ -10,7 +10,6 @@
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;700&display=swap');
 
         :root {
-            /* Darker glass background for better contrast against bright skies */
             --glass-bg: rgba(0, 0, 0, 0.25); 
             --glass-border: rgba(255, 255, 255, 0.15);
             --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
@@ -24,6 +23,7 @@
             overflow: hidden;
             height: 100vh;
             color: var(--text-primary);
+            transition: background-color 0.5s ease;
         }
 
         /* --- Dynamic Background Animation --- */
@@ -37,11 +37,12 @@
             background: linear-gradient(180deg, 
                 #0f2027, #203a43, #2c5364, /* Night */
                 #ff7e5f, #feb47b, /* Sunset */
-                #3a7bd5, #00d2ff, /* Day (Slightly deeper blue for contrast) */
+                #3a7bd5, #00d2ff, /* Day */
                 #2c3e50, #4ca1af /* Morning */
             );
             background-size: 100% 600%;
-            animation: dayNightCycle 300s infinite linear; /* Slowed down slightly */
+            animation: dayNightCycle 300s infinite linear;
+            transition: opacity 0.8s ease;
         }
 
         @keyframes dayNightCycle {
@@ -52,7 +53,7 @@
             100% { background-position: 50% 0%; }  /* Night */
         }
 
-        /* --- Celestial Body (Sun/Moon) --- */
+        /* --- Celestial Body --- */
         .celestial-container {
             position: absolute;
             top: 0;
@@ -62,6 +63,7 @@
             z-index: -2;
             animation: rotateSky 300s infinite linear;
             pointer-events: none;
+            transition: opacity 0.8s ease;
         }
 
         .sun-moon {
@@ -83,7 +85,7 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* --- Scenery (Line Art) --- */
+        /* --- Scenery --- */
         .scenery {
             position: absolute;
             bottom: 0;
@@ -91,8 +93,9 @@
             width: 100%;
             height: 50%;
             z-index: -1;
-            opacity: 0.8; /* Increased opacity slightly */
+            opacity: 0.8;
             pointer-events: none;
+            transition: opacity 0.8s ease;
         }
 
         .mountain-svg {
@@ -125,13 +128,14 @@
             -webkit-backdrop-filter: blur(16px);
             border-radius: 24px;
             border: 1px solid var(--glass-border);
-            transition: all 0.3s ease;
+            transition: all 0.5s ease;
         }
 
         /* --- UI Elements --- */
         .timer-display {
             font-variant-numeric: tabular-nums;
             text-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            transition: opacity 0.5s ease;
         }
 
         .btn-control {
@@ -170,14 +174,6 @@
             box-shadow: 0 0 8px rgba(255,255,255,0.8);
         }
 
-        /* Task Input Styling (Header style) */
-        .task-container {
-            position: relative;
-            width: 100%;
-            display: flex;
-            justify-content: center;
-        }
-        
         .task-input {
             background: transparent;
             border: none;
@@ -211,18 +207,66 @@
             opacity: 0.6;
         }
 
-        /* Animation classes */
-        .fade-in { animation: fadeIn 0.5s ease-in; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
         /* Modal */
         .modal-overlay {
             background: rgba(0,0,0,0.7);
             backdrop-filter: blur(5px);
         }
+
+        /* --- Zen Mode Styles --- */
+        body.zen-mode {
+            background-color: #000000;
+        }
+        body.zen-mode .sky-background, 
+        body.zen-mode .celestial-container, 
+        body.zen-mode .scenery {
+            opacity: 0;
+        }
+        body.zen-mode .glass-card {
+            background: transparent;
+            box-shadow: none;
+            border-color: transparent;
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+        }
+        body.zen-mode .zen-hidden {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+        body.zen-mode .timer-display {
+            opacity: 0.8;
+            color: #ffffff;
+            text-shadow: none;
+        }
+        body.zen-mode #toggle-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            box-shadow: none;
+        }
+        body.zen-mode #toggle-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .zen-toggle-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 50;
+            opacity: 0.5;
+            transition: opacity 0.3s;
+        }
+        .zen-toggle-btn:hover {
+            opacity: 1;
+        }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen relative">
+
+    <!-- Zen Mode Toggle -->
+    <button onclick="toggleZenMode()" class="zen-toggle-btn text-white p-2" title="Toggle Zen Mode">
+        <i id="zen-icon" class="fas fa-eye text-xl"></i>
+    </button>
 
     <!-- Background Elements -->
     <div class="sky-background"></div>
@@ -234,47 +278,45 @@
     <div class="scenery">
         <svg class="mountain-svg" viewBox="0 0 1440 320" preserveAspectRatio="none">
             <path d="M0,224L48,213.3C96,203,192,181,288,181.3C384,181,480,203,576,224C672,245,768,267,864,250.7C960,235,1056,181,1152,165.3C1248,149,1344,171,1392,181.3L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
-            <path d="M0,280L60,260C120,240,240,200,360,190C480,180,600,200,720,220C840,240,960,260,1080,250C1200,240,1320,200,1380,180L1440,160V320H0V280Z" fill="rgba(255,255,255,0.05)" stroke="none"></path>
         </svg>
         
         <svg class="river-svg" viewBox="0 0 1440 100" preserveAspectRatio="none">
              <path d="M0,50 C300,80 600,20 900,50 C1200,80 1440,50 1440,50" stroke-dasharray="10,10" opacity="0.5"/>
-             <path d="M0,70 C400,90 800,40 1200,70 C1300,80 1440,70 1440,70" stroke-dasharray="5,15" opacity="0.3"/>
         </svg>
     </div>
 
     <!-- Main App Container -->
-    <main class="glass-card p-8 w-full max-w-md mx-4 relative z-10 flex flex-col items-center gap-6 fade-in">
+    <main class="glass-card p-8 w-full max-w-md mx-4 relative z-10 flex flex-col items-center gap-6">
         
-        <!-- Task Input (Elevated to top) -->
-        <div class="task-container flex items-center justify-center relative w-full mb-2">
+        <!-- Task Input -->
+        <div class="task-container flex items-center justify-center relative w-full mb-2 zen-hidden">
             <input type="text" id="task-input" value="Focus Session" 
                    class="task-input text-3xl font-bold p-2 placeholder-gray-300">
             <i class="fas fa-pencil-alt absolute right-0 top-1/2 transform -translate-y-1/2 text-white/50 edit-icon-hint text-sm"></i>
         </div>
 
-        <!-- Timer Navigation & Quick Edit -->
-        <div class="flex items-center gap-4 w-full justify-center">
+        <!-- Timer Navigation -->
+        <div class="flex items-center gap-4 w-full justify-center zen-hidden">
             <div class="flex justify-center gap-6 text-sm tracking-widest uppercase bg-white/10 px-6 py-2 rounded-full border border-white/10">
                 <button onclick="setMode('focus')" id="btn-focus" class="mode-btn active">Focus</button>
                 <button onclick="setMode('short')" id="btn-short" class="mode-btn">Short</button>
                 <button onclick="setMode('long')" id="btn-long" class="mode-btn">Long</button>
             </div>
             
-            <!-- Tiny Pencil Icon for Quick Time Adjustment -->
-            <button onclick="quickEditTime()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors text-white/80 hover:text-white" title="Quick adjust time">
+            <!-- Custom Time Button -->
+            <button onclick="openCustomTimeModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors text-white/80 hover:text-white" title="Set Custom Time">
                 <i class="fas fa-pencil-alt text-xs"></i>
             </button>
         </div>
 
-        <!-- Timer Display (Bold) -->
+        <!-- Timer Display -->
         <div class="relative group cursor-default my-4">
             <div id="timer" class="timer-display text-9xl font-bold tracking-tighter">25:00</div>
         </div>
 
         <!-- Controls -->
         <div class="flex items-center gap-6">
-            <button onclick="resetTimer()" class="btn-control w-12 h-12 flex items-center justify-center rounded-full hover:bg-white/10" title="Reset">
+            <button onclick="resetTimer()" class="btn-control w-12 h-12 flex items-center justify-center rounded-full hover:bg-white/10 zen-hidden" title="Reset">
                 <i class="fas fa-undo-alt text-lg"></i>
             </button>
             
@@ -283,21 +325,45 @@
                 <i id="toggle-icon" class="fas fa-play text-2xl ml-1"></i>
             </button>
             
-            <button onclick="openSettings()" class="btn-control w-12 h-12 flex items-center justify-center rounded-full hover:bg-white/10" title="Settings">
+            <button onclick="openSettings()" class="btn-control w-12 h-12 flex items-center justify-center rounded-full hover:bg-white/10 zen-hidden" title="Settings">
                 <i class="fas fa-cog text-lg"></i>
             </button>
         </div>
     </main>
 
+    <!-- Custom Time Modal -->
+    <div id="custom-modal" class="fixed inset-0 modal-overlay z-50 hidden flex items-center justify-center opacity-0 transition-opacity duration-300">
+        <div class="glass-card bg-gray-900/95 p-8 w-80 max-w-full text-white transform scale-95 transition-transform duration-300" id="custom-modal-content">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-light">Custom Timer</h2>
+                <button onclick="closeCustomTimeModal()" class="hover:text-gray-300"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <div class="flex gap-4">
+                <div class="flex flex-col gap-1 w-1/2">
+                    <label class="text-xs uppercase tracking-wide opacity-70">Minutes</label>
+                    <input type="number" id="custom-min" value="25" min="0" class="bg-white/10 border border-white/20 rounded p-2 text-white text-center text-xl">
+                </div>
+                <div class="flex flex-col gap-1 w-1/2">
+                    <label class="text-xs uppercase tracking-wide opacity-70">Seconds</label>
+                    <input type="number" id="custom-sec" value="0" min="0" max="59" class="bg-white/10 border border-white/20 rounded p-2 text-white text-center text-xl">
+                </div>
+            </div>
+
+            <button onclick="applyCustomTime()" class="w-full mt-6 bg-white text-gray-900 font-medium py-2 rounded hover:bg-gray-100 transition">Set Timer</button>
+        </div>
+    </div>
+
     <!-- Settings Modal -->
     <div id="settings-modal" class="fixed inset-0 modal-overlay z-50 hidden flex items-center justify-center opacity-0 transition-opacity duration-300">
-        <div class="glass-card bg-gray-900/95 p-8 w-80 max-w-full text-white transform scale-95 transition-transform duration-300" id="modal-content">
+        <div class="glass-card bg-gray-900/95 p-8 w-80 max-w-full text-white transform scale-95 transition-transform duration-300" id="settings-modal-content">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-xl font-light">Settings</h2>
                 <button onclick="closeSettings()" class="hover:text-gray-300"><i class="fas fa-times"></i></button>
             </div>
             
             <div class="space-y-4">
+                <p class="text-xs text-gray-400 mb-2">Adjust preset durations:</p>
                 <div class="flex flex-col gap-1">
                     <label class="text-xs uppercase tracking-wide opacity-70">Focus (min)</label>
                     <input type="number" id="setting-focus" value="25" class="bg-white/10 border border-white/20 rounded p-2 text-white">
@@ -311,7 +377,7 @@
                     <input type="number" id="setting-long" value="15" class="bg-white/10 border border-white/20 rounded p-2 text-white">
                 </div>
                 
-                <div class="flex items-center justify-between pt-2">
+                <div class="flex items-center justify-between pt-2 border-t border-white/10 mt-4">
                     <span class="text-sm">Sound Notifications</span>
                     <button id="sound-toggle" onclick="toggleSound()" class="w-10 h-5 bg-green-400 rounded-full relative transition-colors">
                         <div class="absolute right-1 top-1 w-3 h-3 bg-white rounded-full transition-all"></div>
@@ -319,7 +385,7 @@
                 </div>
             </div>
 
-            <button onclick="saveSettings()" class="w-full mt-6 bg-white text-gray-900 font-medium py-2 rounded hover:bg-gray-100 transition">Save & Close</button>
+            <button onclick="saveSettings()" class="w-full mt-6 bg-white text-gray-900 font-medium py-2 rounded hover:bg-gray-100 transition">Save Presets</button>
         </div>
     </div>
 
@@ -328,10 +394,11 @@
         let timerInterval;
         let timeLeft = 25 * 60;
         let isRunning = false;
-        let currentMode = 'focus';
+        let currentMode = 'focus'; // focus, short, long, or custom
         let soundEnabled = true;
+        let isZenMode = false;
 
-        // Configuration
+        // Configuration (Presets)
         const config = {
             focus: 25,
             short: 5,
@@ -347,8 +414,12 @@
             short: document.getElementById('btn-short'),
             long: document.getElementById('btn-long')
         };
-        const modal = document.getElementById('settings-modal');
-        const modalContent = document.getElementById('modal-content');
+        const settingsModal = document.getElementById('settings-modal');
+        const settingsContent = document.getElementById('settings-modal-content');
+        
+        const customModal = document.getElementById('custom-modal');
+        const customContent = document.getElementById('custom-modal-content');
+        
         const titleTag = document.querySelector('title');
 
         // Sound Logic
@@ -381,7 +452,7 @@
             const s = timeLeft % 60;
             const timeString = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
             timerDisplay.textContent = timeString;
-            titleTag.textContent = `${timeString} - Aesthetic Pomodoro`;
+            titleTag.textContent = `${timeString} - Pomodoro`;
         }
 
         function toggleTimer() {
@@ -394,6 +465,7 @@
 
         function startTimer() {
             if (isRunning) return;
+            if (timeLeft <= 0) return;
             
             isRunning = true;
             toggleIcon.className = "fas fa-pause text-2xl";
@@ -417,8 +489,15 @@
 
         function resetTimer() {
             pauseTimer();
-            timeLeft = config[currentMode] * 60;
-            updateDisplay();
+            if (currentMode === 'custom') {
+                // If in custom mode, maybe just reset to what was last set?
+                // For simplicity, let's reset to the Focus preset or stay at 0
+                // Ideally we'd remember the last custom value, but for now let's go back to Focus
+                setMode('focus');
+            } else {
+                timeLeft = config[currentMode] * 60;
+                updateDisplay();
+            }
         }
 
         function completeTimer() {
@@ -433,53 +512,65 @@
         function setMode(mode) {
             currentMode = mode;
             
+            // UI Updates
             Object.values(modeBtns).forEach(btn => btn.classList.remove('active'));
-            modeBtns[mode].classList.add('active');
+            if (modeBtns[mode]) modeBtns[mode].classList.add('active');
             
             timeLeft = config[mode] * 60;
             pauseTimer(); 
             updateDisplay();
         }
 
-        // --- Quick Edit Logic ---
-        function quickEditTime() {
-            // Pause first
+        // --- Custom Timer Logic (New) ---
+
+        function openCustomTimeModal() {
             pauseTimer();
+            customModal.classList.remove('hidden');
+            void customModal.offsetWidth; 
+            customModal.classList.remove('opacity-0');
+            customContent.classList.remove('scale-95');
+        }
+
+        function closeCustomTimeModal() {
+            customModal.classList.add('opacity-0');
+            customContent.classList.add('scale-95');
+            setTimeout(() => {
+                customModal.classList.add('hidden');
+            }, 300);
+        }
+
+        function applyCustomTime() {
+            const m = parseInt(document.getElementById('custom-min').value) || 0;
+            const s = parseInt(document.getElementById('custom-sec').value) || 0;
             
-            const currentMin = config[currentMode];
-            const newTime = prompt(`Set duration for ${currentMode} (minutes):`, currentMin);
-            
-            if (newTime !== null) {
-                const parsed = parseInt(newTime);
-                if (!isNaN(parsed) && parsed > 0) {
-                    config[currentMode] = parsed;
-                    
-                    // Also update setting inputs in the main modal to match
-                    document.getElementById(`setting-${currentMode}`).value = parsed;
-                    
-                    // Reset timer with new time
-                    timeLeft = parsed * 60;
-                    updateDisplay();
-                } else {
-                    alert("Please enter a valid number of minutes.");
-                }
+            if (m === 0 && s === 0) {
+                alert("Please set a time greater than 0.");
+                return;
             }
+
+            // Set state to 'custom' but don't bind it to a specific preset button
+            currentMode = 'custom';
+            Object.values(modeBtns).forEach(btn => btn.classList.remove('active'));
+
+            timeLeft = (m * 60) + s;
+            updateDisplay();
+            closeCustomTimeModal();
         }
 
         // --- Settings Logic ---
 
         function openSettings() {
-            modal.classList.remove('hidden');
-            void modal.offsetWidth; 
-            modal.classList.remove('opacity-0');
-            modalContent.classList.remove('scale-95');
+            settingsModal.classList.remove('hidden');
+            void settingsModal.offsetWidth; 
+            settingsModal.classList.remove('opacity-0');
+            settingsContent.classList.remove('scale-95');
         }
 
         function closeSettings() {
-            modal.classList.add('opacity-0');
-            modalContent.classList.add('scale-95');
+            settingsModal.classList.add('opacity-0');
+            settingsContent.classList.add('scale-95');
             setTimeout(() => {
-                modal.classList.add('hidden');
+                settingsModal.classList.add('hidden');
             }, 300);
         }
 
@@ -492,12 +583,30 @@
             if (s > 0) config.short = s;
             if (l > 0) config.long = l;
 
-            if (!isRunning) {
+            // Only update current timer if we are currently in one of these modes
+            if (!isRunning && currentMode !== 'custom') {
                 timeLeft = config[currentMode] * 60;
                 updateDisplay();
             }
 
             closeSettings();
+        }
+
+        // --- Zen Mode Logic ---
+        function toggleZenMode() {
+            isZenMode = !isZenMode;
+            const body = document.body;
+            const icon = document.getElementById('zen-icon');
+            
+            if (isZenMode) {
+                body.classList.add('zen-mode');
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                body.classList.remove('zen-mode');
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
         }
 
         function toggleSound() {
@@ -520,9 +629,11 @@
 
         updateDisplay();
 
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) closeSettings();
-        });
+        // Close modals on outside click
+        window.onclick = function(event) {
+            if (event.target == settingsModal) closeSettings();
+            if (event.target == customModal) closeCustomTimeModal();
+        }
 
         if ("Notification" in window && Notification.permission !== "denied") {
             Notification.requestPermission();
