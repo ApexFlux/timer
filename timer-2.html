@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aesthetic Pomodoro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;700&display=swap');
+
+        :root {
+            /* Darker glass background for better contrast against bright skies */
+            --glass-bg: rgba(0, 0, 0, 0.25); 
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            --text-primary: #ffffff;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            height: 100vh;
+            color: var(--text-primary);
+        }
+
+        /* --- Dynamic Background Animation --- */
+        .sky-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -3;
+            background: linear-gradient(180deg, 
+                #0f2027, #203a43, #2c5364, /* Night */
+                #ff7e5f, #feb47b, /* Sunset */
+                #3a7bd5, #00d2ff, /* Day (Slightly deeper blue for contrast) */
+                #2c3e50, #4ca1af /* Morning */
+            );
+            background-size: 100% 600%;
+            animation: dayNightCycle 300s infinite linear; /* Slowed down slightly */
+        }
+
+        @keyframes dayNightCycle {
+            0% { background-position: 50% 0%; }   /* Night */
+            25% { background-position: 50% 100%; } /* Morning */
+            50% { background-position: 50% 50%; }  /* Day */
+            75% { background-position: 50% 25%; }  /* Sunset */
+            100% { background-position: 50% 0%; }  /* Night */
+        }
+
+        /* --- Celestial Body (Sun/Moon) --- */
+        .celestial-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            animation: rotateSky 300s infinite linear;
+            pointer-events: none;
+        }
+
+        .sun-moon {
+            position: absolute;
+            top: 50%; 
+            left: 50%;
+            width: 80px;
+            height: 80px;
+            margin-left: -40px;
+            margin-top: -300px;
+            border-radius: 50%;
+            background: #fff;
+            box-shadow: 0 0 50px rgba(255, 255, 255, 0.9);
+            transition: background 1s ease;
+        }
+
+        @keyframes rotateSky {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* --- Scenery (Line Art) --- */
+        .scenery {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 50%;
+            z-index: -1;
+            opacity: 0.8; /* Increased opacity slightly */
+            pointer-events: none;
+        }
+
+        .mountain-svg {
+            position: absolute;
+            bottom: -5px;
+            width: 120%;
+            left: -10%;
+            height: auto;
+            fill: none;
+            stroke: rgba(255,255,255,0.4);
+            stroke-width: 1.5;
+            filter: drop-shadow(0px 0px 5px rgba(0,0,0,0.2));
+        }
+
+        .river-svg {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 150px;
+            fill: none;
+            stroke: rgba(255,255,255,0.25);
+            stroke-width: 1;
+        }
+
+        /* --- Glassmorphism Card --- */
+        .glass-card {
+            background: var(--glass-bg);
+            box-shadow: var(--glass-shadow);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: 24px;
+            border: 1px solid var(--glass-border);
+            transition: all 0.3s ease;
+        }
+
+        /* --- UI Elements --- */
+        .timer-display {
+            font-variant-numeric: tabular-nums;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+
+        .btn-control {
+            transition: all 0.2s;
+        }
+        .btn-control:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .btn-control:active {
+            transform: translateY(0);
+        }
+
+        .mode-btn {
+            position: relative;
+            opacity: 0.7;
+            transition: opacity 0.3s;
+        }
+        .mode-btn:hover {
+            opacity: 1;
+        }
+        .mode-btn.active {
+            opacity: 1;
+            font-weight: 700;
+        }
+        .mode-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 4px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 0 8px rgba(255,255,255,0.8);
+        }
+
+        /* Task Input Styling (Header style) */
+        .task-container {
+            position: relative;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+        
+        .task-input {
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            text-align: center;
+            width: 100%;
+            color: white;
+            transition: all 0.3s;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .task-input:hover {
+            border-bottom: 2px solid rgba(255,255,255,0.3);
+            cursor: text;
+        }
+        
+        .task-input:focus {
+            outline: none;
+            border-bottom: 2px solid rgba(255,255,255,0.8);
+            background: rgba(0,0,0,0.1);
+            border-radius: 4px;
+        }
+        
+        .edit-icon-hint {
+            opacity: 0;
+            transition: opacity 0.2s;
+            pointer-events: none;
+        }
+        
+        .task-container:hover .edit-icon-hint {
+            opacity: 0.6;
+        }
+
+        /* Animation classes */
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Modal */
+        .modal-overlay {
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(5px);
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen relative">
+
+    <!-- Background Elements -->
+    <div class="sky-background"></div>
+    
+    <div class="celestial-container">
+        <div class="sun-moon"></div>
+    </div>
+
+    <div class="scenery">
+        <svg class="mountain-svg" viewBox="0 0 1440 320" preserveAspectRatio="none">
+            <path d="M0,224L48,213.3C96,203,192,181,288,181.3C384,181,480,203,576,224C672,245,768,267,864,250.7C960,235,1056,181,1152,165.3C1248,149,1344,171,1392,181.3L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+            <path d="M0,280L60,260C120,240,240,200,360,190C480,180,600,200,720,220C840,240,960,260,1080,250C1200,240,1320,200,1380,180L1440,160V320H0V280Z" fill="rgba(255,255,255,0.05)" stroke="none"></path>
+        </svg>
+        
+        <svg class="river-svg" viewBox="0 0 1440 100" preserveAspectRatio="none">
+             <path d="M0,50 C300,80 600,20 900,50 C1200,80 1440,50 1440,50" stroke-dasharray="10,10" opacity="0.5"/>
+             <path d="M0,70 C400,90 800,40 1200,70 C1300,80 1440,70 1440,70" stroke-dasharray="5,15" opacity="0.3"/>
+        </svg>
+    </div>
+
+    <!-- Main App Container -->
+    <main class="glass-card p-8 w-full max-w-md mx-4 relative z-10 flex flex-col items-center gap-6 fade-in">
+        
+        <!-- Task Input (Elevated to top) -->
+        <div class="task-container flex items-center justify-center relative w-full mb-2">
+            <input type="text" id="task-input" value="Focus Session" 
+                   class="task-input text-3xl font-bold p-2 placeholder-gray-300">
+            <i class="fas fa-pencil-alt absolute right-0 top-1/2 transform -translate-y-1/2 text-white/50 edit-icon-hint text-sm"></i>
+        </div>
+
+        <!-- Timer Navigation & Quick Edit -->
+        <div class="flex items-center gap-4 w-full justify-center">
+            <div class="flex justify-center gap-6 text-sm tracking-widest uppercase bg-white/10 px-6 py-2 rounded-full border border-white/10">
+                <button onclick="setMode('focus')" id="btn-focus" class="mode-btn active">Focus</button>
+                <button onclick="setMode('short')" id="btn-short" class="mode-btn">Short</button>
+                <button onclick="setMode('long')" id="btn-long" class="mode-btn">Long</button>
+            </div>
+            
+            <!-- Tiny Pencil Icon for Quick Time Adjustment -->
+            <button onclick="quickEditTime()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors text-white/80 hover:text-white" title="Quick adjust time">
+                <i class="fas fa-pencil-alt text-xs"></i>
+            </button>
+        </div>
+
+        <!-- Timer Display (Bold) -->
+        <div class="relative group cursor-default my-4">
+            <div id="timer" class="timer-display text-9xl font-bold tracking-tighter">25:00</div>
+        </div>
+
+        <!-- Controls -->
+        <div class="flex items-center gap-6">
+            <button onclick="resetTimer()" class="btn-control w-12 h-12 flex items-center justify-center rounded-full hover:bg-white/10" title="Reset">
+                <i class="fas fa-undo-alt text-lg"></i>
+            </button>
+            
+            <button id="toggle-btn" onclick="toggleTimer()" 
+                    class="btn-control w-20 h-20 rounded-full bg-white text-gray-800 flex items-center justify-center shadow-lg hover:bg-gray-100 transition-colors">
+                <i id="toggle-icon" class="fas fa-play text-2xl ml-1"></i>
+            </button>
+            
+            <button onclick="openSettings()" class="btn-control w-12 h-12 flex items-center justify-center rounded-full hover:bg-white/10" title="Settings">
+                <i class="fas fa-cog text-lg"></i>
+            </button>
+        </div>
+    </main>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="fixed inset-0 modal-overlay z-50 hidden flex items-center justify-center opacity-0 transition-opacity duration-300">
+        <div class="glass-card bg-gray-900/95 p-8 w-80 max-w-full text-white transform scale-95 transition-transform duration-300" id="modal-content">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-light">Settings</h2>
+                <button onclick="closeSettings()" class="hover:text-gray-300"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <div class="space-y-4">
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs uppercase tracking-wide opacity-70">Focus (min)</label>
+                    <input type="number" id="setting-focus" value="25" class="bg-white/10 border border-white/20 rounded p-2 text-white">
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs uppercase tracking-wide opacity-70">Short Break (min)</label>
+                    <input type="number" id="setting-short" value="5" class="bg-white/10 border border-white/20 rounded p-2 text-white">
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs uppercase tracking-wide opacity-70">Long Break (min)</label>
+                    <input type="number" id="setting-long" value="15" class="bg-white/10 border border-white/20 rounded p-2 text-white">
+                </div>
+                
+                <div class="flex items-center justify-between pt-2">
+                    <span class="text-sm">Sound Notifications</span>
+                    <button id="sound-toggle" onclick="toggleSound()" class="w-10 h-5 bg-green-400 rounded-full relative transition-colors">
+                        <div class="absolute right-1 top-1 w-3 h-3 bg-white rounded-full transition-all"></div>
+                    </button>
+                </div>
+            </div>
+
+            <button onclick="saveSettings()" class="w-full mt-6 bg-white text-gray-900 font-medium py-2 rounded hover:bg-gray-100 transition">Save & Close</button>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let timerInterval;
+        let timeLeft = 25 * 60;
+        let isRunning = false;
+        let currentMode = 'focus';
+        let soundEnabled = true;
+
+        // Configuration
+        const config = {
+            focus: 25,
+            short: 5,
+            long: 15
+        };
+
+        // DOM Elements
+        const timerDisplay = document.getElementById('timer');
+        const toggleBtn = document.getElementById('toggle-btn');
+        const toggleIcon = document.getElementById('toggle-icon');
+        const modeBtns = {
+            focus: document.getElementById('btn-focus'),
+            short: document.getElementById('btn-short'),
+            long: document.getElementById('btn-long')
+        };
+        const modal = document.getElementById('settings-modal');
+        const modalContent = document.getElementById('modal-content');
+        const titleTag = document.querySelector('title');
+
+        // Sound Logic
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playNotification() {
+            if (!soundEnabled) return;
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); 
+            oscillator.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.5);
+            
+            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.5);
+        }
+
+        // --- Timer Logic ---
+
+        function updateDisplay() {
+            const m = Math.floor(timeLeft / 60);
+            const s = timeLeft % 60;
+            const timeString = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            timerDisplay.textContent = timeString;
+            titleTag.textContent = `${timeString} - Aesthetic Pomodoro`;
+        }
+
+        function toggleTimer() {
+            if (isRunning) {
+                pauseTimer();
+            } else {
+                startTimer();
+            }
+        }
+
+        function startTimer() {
+            if (isRunning) return;
+            
+            isRunning = true;
+            toggleIcon.className = "fas fa-pause text-2xl";
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+
+            timerInterval = setInterval(() => {
+                if (timeLeft > 0) {
+                    timeLeft--;
+                    updateDisplay();
+                } else {
+                    completeTimer();
+                }
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            clearInterval(timerInterval);
+            isRunning = false;
+            toggleIcon.className = "fas fa-play text-2xl ml-1";
+        }
+
+        function resetTimer() {
+            pauseTimer();
+            timeLeft = config[currentMode] * 60;
+            updateDisplay();
+        }
+
+        function completeTimer() {
+            pauseTimer();
+            playNotification();
+            if ("Notification" in window && Notification.permission === "granted") {
+                new Notification("Timer Complete!", { body: "Time to switch tasks." });
+            }
+            alert("Timer Finished!");
+        }
+
+        function setMode(mode) {
+            currentMode = mode;
+            
+            Object.values(modeBtns).forEach(btn => btn.classList.remove('active'));
+            modeBtns[mode].classList.add('active');
+            
+            timeLeft = config[mode] * 60;
+            pauseTimer(); 
+            updateDisplay();
+        }
+
+        // --- Quick Edit Logic ---
+        function quickEditTime() {
+            // Pause first
+            pauseTimer();
+            
+            const currentMin = config[currentMode];
+            const newTime = prompt(`Set duration for ${currentMode} (minutes):`, currentMin);
+            
+            if (newTime !== null) {
+                const parsed = parseInt(newTime);
+                if (!isNaN(parsed) && parsed > 0) {
+                    config[currentMode] = parsed;
+                    
+                    // Also update setting inputs in the main modal to match
+                    document.getElementById(`setting-${currentMode}`).value = parsed;
+                    
+                    // Reset timer with new time
+                    timeLeft = parsed * 60;
+                    updateDisplay();
+                } else {
+                    alert("Please enter a valid number of minutes.");
+                }
+            }
+        }
+
+        // --- Settings Logic ---
+
+        function openSettings() {
+            modal.classList.remove('hidden');
+            void modal.offsetWidth; 
+            modal.classList.remove('opacity-0');
+            modalContent.classList.remove('scale-95');
+        }
+
+        function closeSettings() {
+            modal.classList.add('opacity-0');
+            modalContent.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        function saveSettings() {
+            const f = parseInt(document.getElementById('setting-focus').value);
+            const s = parseInt(document.getElementById('setting-short').value);
+            const l = parseInt(document.getElementById('setting-long').value);
+
+            if (f > 0) config.focus = f;
+            if (s > 0) config.short = s;
+            if (l > 0) config.long = l;
+
+            if (!isRunning) {
+                timeLeft = config[currentMode] * 60;
+                updateDisplay();
+            }
+
+            closeSettings();
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const btn = document.getElementById('sound-toggle');
+            const dot = btn.querySelector('div');
+            
+            if (soundEnabled) {
+                btn.classList.add('bg-green-400');
+                btn.classList.remove('bg-gray-500');
+                dot.classList.remove('right-6');
+                dot.classList.add('right-1');
+            } else {
+                btn.classList.remove('bg-green-400');
+                btn.classList.add('bg-gray-500');
+                dot.classList.remove('right-1');
+                dot.classList.add('right-6'); 
+            }
+        }
+
+        updateDisplay();
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeSettings();
+        });
+
+        if ("Notification" in window && Notification.permission !== "denied") {
+            Notification.requestPermission();
+        }
+    </script>
+</body>
+</html>
